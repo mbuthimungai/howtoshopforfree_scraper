@@ -9,9 +9,6 @@
 - Sends structured deal information to a designated Discord channel.
 - Offers real-time deal updates to keep users informed about new opportunities.
 
-Certainly! I'll update the installation instructions in the README to include steps for setting up a virtual environment using `virtualenv`. Here's the revised section:
-
-```markdown
 ## Installation
 
 To use `howtoshopforfree_scraper`, you need to have Python installed on your system. Follow these steps to set it up:
