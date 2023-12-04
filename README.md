@@ -13,11 +13,7 @@
 
 To use `howtoshopforfree_scraper`, you need to have Python installed on your system. Follow these steps to set it up:
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/mbuthi/howtoshopforfree_scraper.git
-   ```
-2. Navigate to the cloned repository:
+2. Navigate to the extracted repository:
    ```bash
    cd howtoshopforfree_scraper
    ```
@@ -59,15 +55,3 @@ Make sure to configure your Discord webhook URL in the script to receive the dea
 1. **Discord Webhook**: Set up a Discord webhook in your desired channel and add the webhook URL to the script.
 
 2. **Customization**: You can customize the frequency of scrapes and specific deal categories in the script as per your requirements.
-
-## Contributing
-Contributions to `howtoshopforfree_scraper` are welcome! Feel free to fork the repository, make changes, and submit pull requests.
-
-## License
-This project is licensed under the [MIT License](LICENSE.md) - see the LICENSE file for details.
-
-## Disclaimer
-This tool is intended for educational purposes only. Please respect the [How To Shop For Free](https://www.howtoshopforfree.net/) website's terms of use.
-
-## Contact
-For any queries or suggestions, feel free to contact [Twitter](https://twitter.com/MungaiMbuthi).
