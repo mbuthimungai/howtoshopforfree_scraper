@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import random
 from discord_bot.bot import send_discord_message
+import time
 
 USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3",
@@ -15,17 +16,27 @@ USER_AGENTS = [
 ]
 
 
-def send_request(link: str) -> str:
-    # Randomly select a user agent
-    user_agent = random.choice(USER_AGENTS)
-    
-    # Set up headers with the selected user agent
-    headers = {'User-Agent': user_agent}
+def send_request(link: str, max_retries=5, backoff_factor=1) -> str:
+    for attempt in range(max_retries):
+        try:
+            # Randomly select a user agent
+            user_agent = random.choice(USER_AGENTS)
 
-    # Send the request with the headers
-    res = requests.get(link, headers=headers, verify=False)
-    return res.text
+            # Set up headers with the selected user agent
+            headers = {'User-Agent': user_agent}
 
+            # Send the request with the headers
+            response = requests.get(link, headers=headers, verify=False)
+            return response.text
+        except requests.exceptions.ConnectionError:
+            wait_time = backoff_factor * (2 ** attempt)
+            print(f"Connection error on attempt {attempt + 1}. Retrying in {wait_time} seconds.")
+            time.sleep(wait_time)
+        except requests.RequestException as e:
+            print(f"Request failed: {e}")
+            break
+
+    return None
 def scrape_deals(link: dict):
     response = send_request(link["link"])
     soup = BeautifulSoup(response, "html.parser")
@@ -71,7 +82,30 @@ def page_scraper(soup: BeautifulSoup, webhook: str):
         # Get the "View Post" link
         view_post_link_tag = entry.find('a', class_='entry-title-link')
         view_post_link = view_post_link_tag['href'] if view_post_link_tag else None
+        if view_post_link:
+            info = find_destination_link_and_description(view_post_link)
+            
         send_discord_message(webhook_url=webhook, title=title, image_link=image_link,
-                             author=author, author_link=author_link, post_link=view_post_link)
+                             author=author, author_link=author_link, post_link=view_post_link,
+                             destination_link=info[0], description=info[1])
         # print(f"Title: {title}\nImage Link: {image_link}\nAuthor: {author}\nAuthor Link: {author_link}\nPost Link: {view_post_link}\n\n")
     
+    
+def find_destination_link_and_description(post_link: str):
+    response = send_request(post_link)
+    soup = BeautifulSoup(response, "html.parser")
+    div_content = soup.find("div", class_="entry-content")
+    
+    anchor_tags = div_content.select("p a") if div_content else None
+    anchor_tag_link = ""
+    for anchor_tag in anchor_tags:
+        if "HERE" in anchor_tag.get_text():
+            anchor_tag_link = anchor_tag["href"] if anchor_tag else None
+    paragaphs = div_content.select("p")
+    paragraph_text = ""
+    for paragraph in paragaphs:
+        paragraph_text += f"{paragraph.get_text()}\n"
+        element = paragraph.find("a", href=anchor_tag_link)
+        if  element and "HERE" in element.get_text():        
+            break
+    return [anchor_tag_link, f"```{paragraph_text}```"]
